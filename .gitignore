@@ -17,6 +17,8 @@ web-build/
 # testing
 /coverage
 
+replace.txt
+
 #production
 /build
 

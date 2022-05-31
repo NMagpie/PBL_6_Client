@@ -1,107 +1,119 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 
-import MapView, { Marker, PROVIDER_GOOGLE } from "react-native-maps";
-import { View, StyleSheet } from "react-native";
-import mapStyle from "./darkMapStyle.json";
+import { StatusBar } from "expo-status-bar";
+
+import { NavigationContainer } from "@react-navigation/native";
+
+import {
+  createDrawerNavigator,
+  DrawerContentScrollView,
+  DrawerItemList,
+  DrawerItem,
+} from "@react-navigation/drawer";
+
+import { StyleSheet, Pressable } from "react-native";
 
 import Icon from "react-native-vector-icons/FontAwesome5";
 
-// import { FontAwesomeIcon } from "@fortawesome/react-native-fontawesome";
-// import { faLocationPin, faCircleNotch, } from "@fortawesome/free-solid-svg-icons";
-// import MapView from "react-native-map-clustering";
+import MapComponent from "./MapComponent";
+import SelectTransport from "./SelectTransportComponent";
 
-const apiKey = process.env["REACT_APP_MAP"];
+const Drawer = createDrawerNavigator();
 
-const PinComponent = () => {
+function CustomDrawerContent(props) {
   return (
-    <Icon
-      name="map-marker"
-      size={25}
-      color={
-        "#" +
-        Math.floor(Math.random() * (0xffffff + 1))
-          .toString(16)
-          .padStart(6, "0")
-      }
-    />
+    <DrawerContentScrollView {...props}>
+      <DrawerItemList {...props} />
+    </DrawerContentScrollView>
   );
-  //return <FontAwesomeIcon icon={faLocationPin} size={25} color={'#' + Math.floor(Math.random() * (0xffffff + 1)).toString(16).padStart(6, '0')} />;
-};
-
-const cMinMax = {
-  lat: {
-    max: 47.067922,
-    min: 46.951888,
-  },
-  lng: {
-    max: 28.915586,
-    min: 28.748907,
-  },
-};
-
-function rndCoord(min, max) {
-  return Math.random() * (max - min) + min;
 }
 
-const coords = () => {
-  var array = [];
-
-  for (let i = 0; i < 11; i++) {
-    array.push({
-      latitude: rndCoord(cMinMax.lat.min, cMinMax.lat.max),
-      longitude: rndCoord(cMinMax.lng.min, cMinMax.lng.max),
-    });
-  }
-
-  return array;
+const emptyRoute = {
+  number: null,
+  type: null,
+  route: null,
 };
 
-function Body(props) {
+export default function Body(props) {
+  const [selectedRoute, selectRoute] = useState(emptyRoute);
 
-  const markers = coords().map((point, index) => {
-    return (
-      <Marker
-        key={index}
-        coordinate={{ latitude: point.latitude, longitude: point.longitude }}
-      >
-        <PinComponent />
-      </Marker>
-    );
-  });
+  const headerTitle =
+    selectedRoute.number == null ? "Map" : "Route " + selectedRoute.number;
 
   return (
-    <View style={styles.container}>
-      <MapView
-        customMapStyle={[]}
-        provider={PROVIDER_GOOGLE}
-        style={styles.map}
-        showsUserLocation={true}
-        initialRegion={{
-          latitude: 47.02559,
-          longitude: 28.83033,
-          latitudeDelta: 0.0922,
-          longitudeDelta: 0.0421,
-        }}
+    <NavigationContainer>
+      <Drawer.Navigator
+        drawerContent={(props) => (
+          <CustomDrawerContent {...props} selectRoute={selectRoute} />
+        )}
+        initialRouteName="Map"
+        screenOptions={({ navigation }) => ({
+          drawerType: "front",
+          drawerPosition: "right",
+          swipeEnabled: false,
+          headerLeft: (props) => {
+            if (selectedRoute.number == null) return null;
+            else
+              return (
+                <Pressable
+                  style={styles["close-btn"]}
+                  onPress={() => selectRoute(emptyRoute)}
+                >
+                  <Icon name="times" size={25} />
+                </Pressable>
+              );
+          },
+          headerTitle: headerTitle,
+          headerTitleStyle: styles["header-text"],
+          headerRight: (props) => {
+            return (
+              <Pressable
+                style={styles["menu-btn"]}
+                onPress={navigation.toggleDrawer}
+              >
+                <Icon name="bars" size={25} />
+              </Pressable>
+            );
+          },
+        })}
       >
-        <Marker coordinate={{ latitude: 47.02559, longitude: 28.83033 }}>
-          <PinComponent />
-        </Marker>
-        {markers}
-      </MapView>
-    </View>
+        <Drawer.Screen
+          name="Map"
+          children={() => <MapComponent selectedRoute={selectedRoute} />}
+        />
+
+        <Drawer.Screen
+          name="Select Route"
+          options={{
+            headerTitle: "Select Route",
+          }}
+          children={({ route, navigation }) => (
+            <SelectTransport
+              selectRoute={selectRoute}
+              navigate={navigation.navigate}
+            />
+          )}
+        />
+      </Drawer.Navigator>
+      <StatusBar style="dark-content" />
+    </NavigationContainer>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    ...StyleSheet.absoluteFillObject,
-    flex: 1,
-    justifyContent: "flex-end",
+  header: {
+    marginTop: 50,
+    marginBottom: 15,
+    width: "100%",
+    flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
   },
-  map: {
-    ...StyleSheet.absoluteFillObject,
+  "menu-btn": {
+    marginRight: 15,
   },
+  "close-btn": {
+    marginLeft: 15,
+  },
+  "header-text": {},
 });
-
-export default Body;
