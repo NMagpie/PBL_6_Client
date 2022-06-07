@@ -1,15 +1,75 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 
-import MapView, { Marker, PROVIDER_GOOGLE, Polyline } from "react-native-maps";
+import MapView, { Marker, PROVIDER_GOOGLE, Polyline, Callout } from "react-native-maps";
 import { View, StyleSheet, Pressable, Text } from "react-native";
 
 import Icon from "react-native-vector-icons/FontAwesome5";
 
 import {PinComponent, initialRegion } from "../Util/mapUtil";
 
-import simpleMapStyle from "../Util/simplifiedMapStyle.json"
+import simpleMapStyle from "../Util/simplifiedMapStyle.json";
+
+import { setSetter } from "../Util/Network";
+
+const emptyTrolley = {
+  number: null,
+  id: null,
+  flow: null,
+  position: null,
+};
 
 export default function MapComponent(props) {
+
+  const [trolleys, setTrolleys] = useState([]);
+
+  const [selectedTrolley, setSelectedTrolley] = useState(emptyTrolley);
+
+  useEffect( () => {
+    setSetter(setTrolleys);
+  });
+
+  const trolleysPins =
+    trolleys == [] ? null :
+    trolleys.map((trolley) => {
+      return <Marker
+      key={trolley.id.toString()}
+      coordinate={trolley.position}
+      onPress={() => setSelectedTrolley(trolley)}
+      style={{zIndex: 1,}}>
+        {/* { (selectedTrolley.id === trolley.id) && <View>
+            <Pressable onPress={() => setSelectedTrolley(emptyTrolley)}>
+              <Icon name="times" size={25} />
+            </Pressable>
+            <Text>
+            {selectedTrolley.number+"\n"}
+            {trolley.id+"\n"}
+            {selectedTrolley.flow}
+            </Text>
+          </View> } */}
+        {/* <Pressable onPress={() => setSelectedTrolley(trolley)}> */}
+        <Icon name="bus" size={25} color="#80A1D4" />
+        <Callout style={styles.trolley}>
+          <View>
+          <Text>
+            Route: {trolley.number+"\n"}
+            Number: {trolley.id+"\n"}
+            Flow: {trolley.flow}
+          </Text>
+          </View>
+        </Callout>
+      </Marker>
+    });
+
+    // const trolleysTarget =
+    // trolleys == [] ? null :
+    // trolleys.map((trolley) => {
+    //   return <Marker
+    //   key={trolley.id.toString()}
+    //   coordinate={trolley.target}>
+    //     <Icon name="map-marker" size={30} color="#80A1D4" />
+    //   </Marker>
+    // });
+
   const mapRouteForward =
     props.selectedRoute.route == null ? null : 
     props.selectedRoute.route.forward == null ? null : (
@@ -79,6 +139,7 @@ export default function MapComponent(props) {
           <PinComponent />
         </Marker>
         {/* {markers} */}
+        {trolleysPins}
         {mapRouteForward}
         {pinForward}
         {mapRouteBackward}
@@ -97,5 +158,8 @@ const styles = StyleSheet.create({
   },
   map: {
     ...StyleSheet.absoluteFillObject,
+  },
+  trolley: {
+    width: "400%",
   },
 });

@@ -11,6 +11,8 @@ import {
 
 import { trolleyRoutes } from "../Util/trolleyRoutes";
 
+import { sendMessage } from "../Util/Network";
+
 export default function SelectTransport(props) {
   return (
     <View>
@@ -28,6 +30,7 @@ export default function SelectTransport(props) {
                   type: item.item.type,
                   route: item.item.route,
                 });
+                sendMessage(JSON.stringify({ type: "Get", number: item.item.number, }));
                 props.navigate("Map");
               }}
             >

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import { StatusBar } from "expo-status-bar";
 
@@ -16,7 +16,10 @@ import { StyleSheet, Pressable } from "react-native";
 import Icon from "react-native-vector-icons/FontAwesome5";
 
 import MapComponent from "./MapComponent";
+
 import SelectTransport from "./SelectTransportComponent";
+
+import { resetTrolleys } from "../Util/Network";
 
 const Drawer = createDrawerNavigator();
 
@@ -34,7 +37,18 @@ const emptyRoute = {
   route: null,
 };
 
+const emptyTrolleys = {
+  number: null,
+  id: null,
+  flow: null,
+  position: {
+    latitude: null,
+    longitude: null,
+  },
+};
+
 export default function Body(props) {
+
   const [selectedRoute, selectRoute] = useState(emptyRoute);
 
   const headerTitle =
@@ -57,7 +71,10 @@ export default function Body(props) {
               return (
                 <Pressable
                   style={styles["close-btn"]}
-                  onPress={() => selectRoute(emptyRoute)}
+                  onPress={() => {
+                    resetTrolleys();
+                    selectRoute(emptyRoute);
+                  }}
                 >
                   <Icon name="times" size={25} />
                 </Pressable>
@@ -79,7 +96,7 @@ export default function Body(props) {
       >
         <Drawer.Screen
           name="Map"
-          children={() => <MapComponent selectedRoute={selectedRoute} />}
+          children={() => <MapComponent selectedRoute={selectedRoute}/>}
         />
 
         <Drawer.Screen
